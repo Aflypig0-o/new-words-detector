@@ -95,6 +95,9 @@ static void run_sort()
     printf("加载%d个单词\n",list.count);
     wordlist_sort(&list);
     printf("排序完成\n");
+    int before =list.count;
+    wordlist_dedup(&list);
+    printf("去重完成: %d -> %d\n",before,list.count);
     if(!wordlist_save(&list,output_file))
     {
         fprintf(stderr,"ERROR: 保存到%s失败\n",output_file);
@@ -110,9 +113,10 @@ int main(void)
     int choice;
     while(1)
     {
-        printf("===词表工具v0.2.0,持续更新中===\n");
+        printf("===词表工具v0.3.0,持续更新中===\n");
+        printf("v0.3.0版特注:请在输入前确保中文符号已经替换为英文符号否则会导致不可控后果\n");
         printf("1.检测试卷生词\n");
-        printf("2.乱序词表排序\n");
+        printf("2.乱序词表排序(自动去重)\n");
         printf("0.退出\n");
         printf("请选择(输入一个数字):\n");
         scanf("%d",&choice);

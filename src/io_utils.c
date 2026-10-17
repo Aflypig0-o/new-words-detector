@@ -89,46 +89,34 @@ void io_to_lower(char *s)
 //   2. 找 end   —— 最后一个非空白字符的下标 + 1（即有效区间的右边界）
 //   3. memmove 把 [start, end) 搬到开头，补 '\0'
 // ----------------------------------------------------------------------------
+#include <string.h>
+#include <ctype.h>
+
 void io_trim(char *s)
 {
-    // ===== 第一步：去掉开头空白 =====
-    // start 从 0 开始，逐位向后检查
-    //   条件1: s[start] —— 即 s[start] != '\0'，防止在字符串结束后继续访问（越界）
-    //   条件2: isspace(...) —— 当前字符是空白字符
-    // 两个条件同时满足才继续移动，任一不满足就停
-    // 循环结束后 start 指向第一个非空白字符（或 '\0'，表示全是空白）
-    //去掉开头空白
-    //同样的，为了安全，此处采用unsigned char
+    if (s == NULL) return;
+
+    // 第一步：去掉开头空白
     int start = 0;
-    while(s[start] && isspace((unsigned char)s[start]))
-    {
+    while (s[start] && isspace((unsigned char)s[start])) {
         ++start;
     }
 
-    // ===== 第二步：去掉结尾空白 =====
-    // end 初始为字符串长度（即 '\0' 的下标），向前回退
-    //   条件1: end > start —— 防止全空白字符串时 end 减到 start 以下，也防止访问 s[-1]
-    //   条件2: isspace(s[end-1]) —— s[end-1] 是空白字符，需要去掉
-    // 循环结束后 end 是最后一个非空白字符的下标 + 1
-    //去掉结尾空白
+    // 第二步：去掉结尾空白
     int end = strlen(s);
-    while(end > start && isspace((unsigned char)s[end-1]))
-    {
+    while (end > start && isspace((unsigned char)s[end - 1])) {
         --end;
     }
 
-    // ===== 第三步：移动字符串 =====
-    // 把 [start, end) 这段有效内容（长度 len = end - start 字节）
-    // 搬到字符串开头
-    //   - 用 memmove 而非 memcpy：源区 s+start 和目标区 s 可能重叠，
-    //     memcpy 在重叠时是未定义行为，memmove 标准保证正确处理重叠拷贝
-    //   - memmove 的第三个参数是字节数，不包含 '\0'
-    // 最后手动在 s[len] 处补 '\0'，完成字符串
-    //移动字符串
-    int len = end-start;
-    memmove(s,s+start,len);
-    s[len] = '\0';
-
+    // 第三步：计算有效长度，并移动/截断字符串
+    int len = end - start;
+    
+    if (start > 0) {
+        // 把有效字符移到字符串开头
+        memmove(s, s + start, len);
+    }
+    // 最后一定要加上结束符，否则字符串就没尾巴了
+    s[len] = '\0'; 
 }
 
  bool is_blank_line(const char *s)

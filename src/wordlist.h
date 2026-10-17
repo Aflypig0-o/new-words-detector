@@ -4,7 +4,7 @@
 
 #define MAX_WORDS 10000
 #define MAX_WORD_LEN 32
-#define MAX_MEANING_LEN 128
+#define MAX_MEANING_LEN 512
 
 typedef struct
 {
@@ -25,5 +25,6 @@ void wordlist_remove_all(WordList *big,const WordList *small);//去掉屏蔽词�
 bool wordlist_save(const WordList *list,const char *filename);//保存词表
 void wordlist_print(const WordList *list);//打印词表
 void wordlist_sort(WordList *list);//词表排序
+void wordlist_dedup(WordList *list);//词表去重
 
 #endif

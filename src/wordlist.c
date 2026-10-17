@@ -5,6 +5,36 @@
 #include "wordlist.h"
 #include "io_utils.h"
 
+static int split_meanings(const char *src,char pieces[][MAX_MEANING_LEN],int max_pieces)
+{
+    int count = 0;
+    int i = 0;
+    int j = 0;
+    while(src[i] != '\0' && count < max_pieces)
+    {
+        j = 0;
+        while(src[i] != '\0' && src[i] != ',' && src[i] != ';')
+        {
+            if(j < MAX_MEANING_LEN -1)
+            {
+                pieces[count][j++] = src[i];
+            }
+            ++i;
+        }
+        pieces[count][j] = '\0';
+        io_trim(pieces[count]);
+        if(strlen(pieces[count]) > 0)
+        {
+            ++count;
+        }
+        if(src[i] == ';' || src[i] == ',')
+        {
+            ++i;
+        }
+    }
+    return count;
+}
+
 void wordlist_init(WordList *list)
 {
     if(list == NULL)
@@ -154,4 +184,45 @@ void wordlist_sort(WordList *list)
             break;
         }
     }
+}
+
+void wordlist_dedup(WordList *list) {
+    if (list->count <= 1) return;
+    
+    int j = 0;
+    for (int i = 1; i < list->count; i++) {
+        if (strcmp(list->entries[i].word, list->entries[j].word) == 0) {
+            if (strcmp(list->entries[i].meaning, list->entries[j].meaning) == 0) {
+                continue; // 完全相同，跳过
+            }
+            
+            char pieces[30][MAX_MEANING_LEN];
+            int n = split_meanings(list->entries[i].meaning, pieces, 30);
+            
+            for (int k = 0; k < n; k++) {
+                char pattern[MAX_MEANING_LEN + 4];
+                snprintf(pattern, sizeof(pattern), ";%s;", pieces[k]);
+                
+                char dst_check[MAX_MEANING_LEN * 2];
+                snprintf(dst_check, sizeof(dst_check), ";%s;", list->entries[j].meaning);
+                
+                // 如果没找到，追加
+                if (strstr(dst_check, pattern) == NULL) {
+                    size_t cur_len = strlen(list->entries[j].meaning);
+                    size_t add_len = strlen(pieces[k]);
+                    
+                    if (cur_len + add_len + 2 < MAX_MEANING_LEN) {
+                        strncat(list->entries[j].meaning, ";", MAX_MEANING_LEN - cur_len - 1);
+                        strncat(list->entries[j].meaning, pieces[k], MAX_MEANING_LEN - cur_len - 2);
+                    }
+                }
+            }
+        } else {
+            j++;
+            if (i != j) {
+                list->entries[j] = list->entries[i];
+            }
+        }
+    }
+    list->count = j + 1;
 }
